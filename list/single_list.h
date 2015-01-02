@@ -1,8 +1,8 @@
 #pragma once
 #include <assert.h>
 #include <iostream>
+#include <debug_new.h>
 #include <merge.h>
-
 
 template<class Value>
 class TSingleLinkedList {
