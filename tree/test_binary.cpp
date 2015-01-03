@@ -46,7 +46,7 @@ void test_worst_case_ins_depth()
     TBinaryTree<int> tree;
     TRedBlackTree<int> rbtree;
 
-    const int N = 100000;
+    const int N = 10000;
     for(int i = 0; i < N; i++) {
         tree.insert(i);
         rbtree.insert(i);
@@ -61,7 +61,7 @@ void test_ins_depth()
     TBinaryTree<int> tree;
     TRedBlackTree<int> rbtree;
 
-    const int N = 100000;
+    const int N = 10000;
     for(int i = 0; i < N; i++) {
         int v = rand() % 100000;
         tree.insert(v);
@@ -77,16 +77,24 @@ void test_in_order_traverse()
     TBinaryTree<int> tree;
     TRedBlackTree<int> rbtree;
 
-    for(int i = 0; i < 100; i++) {
-        int v1 = rand() % 100;
-        tree.insert(v1);
+    int tree_sz = 0;
+
+    for(int i = 0; i < 10000; i++) {
+        int v1 = rand() % 1000;
+        tree_sz += tree.insert(v1) ? 1 : 0;
         rbtree.insert(v1);
-        int v2 = rand() % 100;
-        tree.insert(v2);
+        assert(rbtree.rbt_satisfied());
+        int v2 = rand() % 1000;
+        tree_sz += tree.insert(v2) ? 1 : 0;
         rbtree.insert(v2);
-        // int v3 = rand() % 100;
-        // tree.remove(v3);
+        assert(rbtree.rbt_satisfied());
+        int v3 = rand() % 1000;
+        tree_sz -= tree.remove(v3) ? 1 : 0;
+        rbtree.remove(v3);
+        assert(rbtree.rbt_satisfied());
     }
+
+    assert(tree.size() == tree_sz);
     
     TSingleLinkedList<int> in_order_values_tree;
     tree.in_order_traverse( [&in_order_values_tree] (int v) { in_order_values_tree.push_back(v); } );
@@ -107,6 +115,42 @@ void test_in_order_traverse()
     std::cout << std::endl;
 }
 
+void test_rb_remove_trivial()
+{
+    TRedBlackTree<int> rb1;
+    assert(rb1.insert(1));
+    assert(rb1.remove(1));
+    assert(!rb1.find(1));
+    assert(rb1.depth() == 0);
+    assert(rb1.size() == 0);
+
+    assert(rb1.insert(1)); // << root
+    assert(rb1.insert(2)); 
+    assert(rb1.remove(1)); // << 2 becomes root 
+    assert(rb1.depth() == 1);
+    assert(rb1.size() == 1);
+    assert(!rb1.find(1));
+    assert(rb1.find(2));
+
+    assert(rb1.insert(1)); // << leaf
+    assert(rb1.remove(1));
+    assert(rb1.depth() == 1);
+    assert(rb1.size() == 1);
+    assert(!rb1.find(1));
+    assert(rb1.find(2));
+
+    assert(rb1.insert(1)); // << left leaf
+    assert(rb1.insert(3)); // << right leaf
+    assert(rb1.depth() == 2);
+    assert(rb1.size() == 3);
+    assert(rb1.remove(2));
+    assert(rb1.depth() == 2);
+    assert(rb1.size() == 2);
+    assert(!rb1.find(2));
+    assert(rb1.find(1));
+    assert(rb1.find(3));
+}
+
 int main(int argc, char* argv[])
 {
     test_basic();
@@ -114,5 +158,6 @@ int main(int argc, char* argv[])
     test_worst_case_ins_depth();
     test_ins_depth();
     test_in_order_traverse();
+    test_rb_remove_trivial();
     return 0;
 }

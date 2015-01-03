@@ -143,6 +143,32 @@ protected:
 
     }
 
+    virtual void internal_remove(Node** n) 
+    {
+        if ((*n)->left == 0) {
+            Node* tmp = *n;
+            *n = (*n)->right;
+            delete tmp;
+        } else if ((*n)->right == 0) {
+            Node* tmp = *n;
+            *n = (*n)->left;
+            delete tmp;
+        } else {
+            Node** d = leftmost_descendant(&(*n)->right);
+            (*n)->v = (*d)->v;
+            internal_remove(d);
+        }
+    }
+
+    Node** leftmost_descendant(Node** n)
+    {
+        assert(*n != 0);
+        while ((*n)->left != 0) {
+            n = &(*n)->left;
+        }
+        return n;
+    }
+
 protected:
     Node* root;
     int sz;
@@ -182,38 +208,6 @@ private:
             }
         }
         return n;
-    }
-
-    Node** leftmost_descendant(Node** n)
-    {
-        assert(*n != 0);
-        while ((*n)->left != 0) {
-            n = &(*n)->left;
-        }
-        return n;
-    }
-
-    void internal_remove(Node** n) 
-    {
-        if ((*n)->left == 0) {
-            Node* tmp = *n;
-            *n = (*n)->right;
-            delete tmp;
-        } else if ((*n)->right == 0) {
-            Node* tmp = *n;
-            *n = (*n)->left;
-            delete tmp;
-        } else {
-            Node** d = leftmost_descendant(&(*n)->right);
-            if(*d == (*n)->right) {
-                (*d)->left = (*n)->left;
-                delete *n;
-                *n = *d;
-            } else {
-                (*n)->v = (*d)->v;
-                internal_remove(d);
-            }
-        }
     }
 
     template<class Func>

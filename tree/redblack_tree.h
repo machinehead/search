@@ -9,6 +9,19 @@ public:
         clear(&this->root);
     }
 
+    bool rbt_satisfied()
+    {
+        RBTNode* r = reinterpret_cast<RBTNode*>(this->root);
+        if (r == 0) {
+            return true;
+        }
+        if (r->red) {
+            return false;
+        }
+        int bn_path = 0;
+        return rbt_satisfied(r, bn_path);
+    }
+
 protected:
     typedef typename TBinaryTree<Value>::Node ParentNodeClass;
 
@@ -29,7 +42,7 @@ protected:
         inline RBTNode* parent_node() { return reinterpret_cast<RBTNode*>(this->parent); }
     };
 
-protected:    
+protected:
     virtual ParentNodeClass* create_node(const Value& v)
     {
         return new RBTNode(v);
@@ -92,7 +105,114 @@ protected:
         }
     }
 
+    virtual void internal_remove(ParentNodeClass** _n)
+    {
+        RBTNode** n = reinterpret_cast<RBTNode**>(_n);
+        if ((*n)->left == 0 || (*n)->right == 0) {
+            delete_one_child(n);
+        } else {
+            RBTNode** m = reinterpret_cast<RBTNode**>(this->leftmost_descendant(&(*n)->right));
+            (*n)->v = (*m)->v;
+            delete_one_child(m);
+        }
+    }
+
 private:
+    bool rbt_satisfied(RBTNode* n, int& bn_path)
+    {
+        if (n == 0) {
+            return true;
+        }
+        if (n->red) {
+            if (n->left != 0 && n->left_node()->red) {
+                return false;
+            } else if (n->right != 0 && n->right_node()->red) {
+                return false;
+            }
+        }
+        int bn_left = 0, bn_right = 0;
+        bool sat_left = rbt_satisfied(n->left_node(), bn_left);
+        bool sat_right = rbt_satisfied(n->right_node(), bn_right);
+        if(bn_left != bn_right) {
+            return false;
+        }
+        bn_path = bn_left + ((!n->red) ? 1 : 0);
+        return sat_left && sat_right;
+    }
+
+    inline void delete_one_child(RBTNode** n)
+    {
+        RBTNode* child = ((*n)->left == 0) ? (*n)->right_node() : (*n)->left_node();
+
+        if (!(*n)->red) {
+            if (child != 0 && child->red) {
+                child->red = false;
+            } else {
+                delete_cases(*n);
+            }
+        }
+        if(child != 0) {
+            child->parent = (*n)->parent_node();
+        }
+        RBTNode* tmp = *n;
+        *n = child;
+        delete tmp;
+    }
+
+    inline void delete_cases(RBTNode* n) 
+    {
+        if(n->parent == 0) {
+            return;
+        }
+        RBTNode* p = n->parent_node();
+        RBTNode* s = (n == p->left_node()) ? p->right_node() : p->left_node();
+        if(s != 0 && s->red) {
+            p->red = true;
+            s->red = false;
+            if (s == p->left_node()) {
+                rotate_right(s, p, p->parent_node());
+                s = p->left_node();
+            } else {
+                rotate_left(s, p, p->parent_node());
+                s = p->right_node();
+            }
+        }
+        if (!p->red && !s->red && (s->left == 0 || !s->left_node()->red) && (s->right == 0 || !s->right_node()->red)) {
+            s->red = true;
+            delete_cases(p);
+            return;
+        }
+        if (p->red && !s->red && (s->left == 0 || !s->left_node()->red) && (s->right == 0 || !s->right_node()->red)) {
+            s->red = true;
+            p->red = false;
+            return;
+        }
+        if (!s->red) {
+            if (n == p->left_node() && (s->right == 0 || !s->right_node()->red) && s->left != 0 && s->left_node()->red) {
+                s->red = true;
+                RBTNode* sl = s->left_node();
+                sl->red = false;
+                rotate_right(sl, s, s->parent_node());
+                std::swap(sl, s);
+            } else if (n == p->right_node() && (s->left == 0 || !s->left_node()->red) && s->right != 0 && s->right_node()->red) {
+                s->red = true;
+                RBTNode* sr = s->right_node();
+                sr->red = false;
+                rotate_left(sr, s, s->parent_node());
+                std::swap(sr, s);
+            }
+        }
+        s->red = p->red;
+        p->red = false;
+        if (n == p->left_node()) {
+            s->right_node()->red = false;
+            rotate_left(s, p, p->parent_node());
+        } else {
+            s->left_node()->red = false;
+            rotate_right(s, p, p->parent_node());
+        }
+    }
+
     inline void rotate_left(RBTNode* n, RBTNode* p, RBTNode* gp) {
         RBTNode* tmp_left_n = n->left_node();
         if (gp != 0) {
