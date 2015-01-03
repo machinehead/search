@@ -30,7 +30,11 @@ public:
         Nstd::copy(init.begin(), init.end(), begin());
     }
 
-    TSingleLinkedList(const TSingleLinkedList& other) = delete;
+    TSingleLinkedList(const TSingleLinkedList& other)
+    {
+        initialize();
+        *this = other;
+    }
 
     TSingleLinkedList(TSingleLinkedList&& other)
     {
@@ -40,7 +44,12 @@ public:
         std::swap(sz, other.sz);
     }
 
-    void operator=(const TSingleLinkedList& other) = delete;
+    void operator=(const TSingleLinkedList& other)
+    {
+        clear();
+        reserve(other.size());
+        Nstd::copy(other.begin(), other.end(), begin());
+    }
 
     void operator=(TSingleLinkedList&& other)
     {
@@ -133,6 +142,7 @@ public:
     friend class TSingleLinkedList;
     public:
         Value& operator*() const {
+            assert(node != 0);
             return node->v;
         }
 

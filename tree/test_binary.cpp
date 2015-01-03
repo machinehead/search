@@ -151,6 +151,61 @@ void test_rb_remove_trivial()
     assert(rb1.find(3));
 }
 
+template <class Tree>
+void test_move_copy()
+{
+    Tree tree1;
+    assert(tree1.insert(1));
+    assert(tree1.insert(2));
+
+    // copy constructor
+    Tree tree2(tree1);
+    assert(tree2.find(1));
+    assert(tree2.find(2));
+
+    // copy assignment
+    Tree tree3;
+    assert(tree3.insert(3));
+    assert(tree3.find(3));
+    assert(tree3.size() == 1);
+    tree3 = tree1;
+    assert(!tree3.find(3));
+    assert(tree3.size() == 2);
+    assert(tree3.find(1));
+    assert(tree3.find(2));
+
+    // independence checks
+    assert(tree1.remove(1));
+    assert(!tree1.find(1));
+    assert(tree1.find(2));
+    assert(tree2.find(1));
+    assert(tree2.find(2));
+    assert(tree3.find(1));
+    assert(tree3.find(2));
+
+    // move constructor
+    Tree tree4(std::move(tree2));
+    assert(tree2.size() == 0);
+    assert(!tree2.find(1));
+    assert(!tree2.find(2));
+    assert(tree4.size() == 2);
+    assert(tree4.find(1));
+    assert(tree4.find(2));
+
+    // move assignment
+    Tree tree5;
+    tree5.insert(3);
+    assert(tree5.size() == 1);
+    assert(tree5.find(3));
+    tree5 = std::move(tree3);
+    assert(tree3.size() == 0);
+    assert(!tree3.find(1));
+    assert(!tree3.find(2));
+    assert(tree5.size() == 2);
+    assert(tree5.find(1));
+    assert(tree5.find(2));
+}
+
 int main(int argc, char* argv[])
 {
     test_basic();
@@ -159,5 +214,10 @@ int main(int argc, char* argv[])
     test_ins_depth();
     test_in_order_traverse();
     test_rb_remove_trivial();
+    std::cout << "test_move_copy<TBinaryTree<int>>()" << std::endl;
+    test_move_copy<TBinaryTree<int>>();
+    std::cout << "test_move_copy<TRedBlackTree<int>>()" << std::endl;
+    test_move_copy<TRedBlackTree<int>>();
+
     return 0;
 }

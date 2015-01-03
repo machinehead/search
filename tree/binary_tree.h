@@ -30,9 +30,38 @@ public:
     {
     }
 
+    TBinaryTree(const TBinaryTree& other) : 
+        root( 0 ),
+        sz( 0 )
+    {
+        other.in_order_traverse( [this] (Value v) { this->insert(v); } ); 
+    }
+
+    const TBinaryTree& operator=(const TBinaryTree& other)
+    {
+        clear();        
+        other.in_order_traverse( [this] (Value v) { this->insert(v); } ); 
+        return other;
+    }
+
+    TBinaryTree(TBinaryTree&& other) : 
+        root( 0 ),
+        sz( 0 )
+    {
+        std::swap(root, other.root);
+        std::swap(sz, other.sz);
+    }
+
+    void operator=(TBinaryTree&& other)
+    {
+        clear();
+        std::swap(root, other.root);
+        std::swap(sz, other.sz);
+    }
+
     virtual ~TBinaryTree() 
     {
-        clear(&root);
+        clear();
     }
 
     bool insert(const Value& v)
@@ -119,7 +148,12 @@ public:
     template<class Func>
     void in_order_traverse(Func f) const
     {
-        in_order_traverse(root, f);
+        internal_in_order_traverse(root, f);
+    }
+
+    void clear()
+    {
+        internal_clear(&root);
     }
 
 protected:
@@ -128,14 +162,15 @@ protected:
         return new Node(v);
     }
 
-    virtual void clear(Node** r)
+    virtual void internal_clear(Node** r)
     {
         if(*r != 0) {
-            clear(&(*r)->left);
-            clear(&(*r)->right);
+            internal_clear(&(*r)->left);
+            internal_clear(&(*r)->right);
             delete *r;
             *r = 0;
         }
+        sz = 0;
     }
 
     virtual void on_insert(Node* n)
@@ -211,12 +246,12 @@ private:
     }
 
     template<class Func>
-    void in_order_traverse(Node* n, Func f) const
+    void internal_in_order_traverse(Node* n, Func f) const
     {
         if (n != 0) {
-            in_order_traverse(n->left, f);
+            internal_in_order_traverse(n->left, f);
             f(n->v);
-            in_order_traverse(n->right, f);
+            internal_in_order_traverse(n->right, f);
         }
     }
 
