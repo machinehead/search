@@ -146,17 +146,48 @@ void test_init_list()
     assert(lst.pop_front() == 2);   
 }
 
-void test_move()
+void test_copy_move()
 {
     typedef TSingleLinkedList<int> IntListType;
     
-    IntListType lst2;
+    std::cout << "test_copy_move" << std::endl;
+
+    IntListType lst1;
     {
-        lst2 = IntListType({1,2,3,4,5});
+        // copy from local list
+        lst1 = IntListType({1,2,3,4,5});
     }
+    assert(lst1.size() == 5);
+    assert(lst1.pop_front() == 1);
+    assert(lst1.pop_front() == 2);
+    lst1.push_front(2);
+    lst1.push_front(1);
+
+    // copy from other list
+    IntListType lst2(lst1);
+    assert(lst1.size() == 5);
     assert(lst2.size() == 5);
-    assert(lst2.pop_front() == 1);   
-    assert(lst2.pop_front() == 2);   
+    assert(std::equal(lst1.begin(), lst1.end(), lst2.begin()));
+
+    // forced move constructor
+    IntListType lst3(std::move(lst2));
+    assert(lst1.size() == 5);
+    assert(lst2.size() == 0);
+    assert(lst3.size() == 5);
+    assert(std::equal(lst1.begin(), lst1.end(), lst3.begin()));
+    assert(lst1.pop_front() == 1);
+    assert(lst1.size() == 4);
+    assert(lst3.size() == 5);
+
+    // copy through assignment
+    lst2 = lst1;
+    assert(lst1.size() == 4);
+    assert(lst2.size() == 4);
+    assert(lst3.size() == 5);
+    assert(lst2.pop_front() == 2);
+    assert(lst1.size() == 4);
+    assert(lst2.size() == 3);
+    assert(lst3.size() == 5);
 }
 
 void test_sorted()
@@ -182,7 +213,7 @@ int main(int argc, char* argv[])
     test_counting();
     test_copy();
     test_init_list();
-    test_move();
+    test_copy_move();
     test_sorted();
     return 0;
 }

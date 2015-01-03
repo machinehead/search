@@ -2,12 +2,54 @@
 #include <binary_tree.h>
 
 template<class Value>
-class TRedBlackTree : public TBinaryTree<Value> {
+class TRedBlackTree : private TBinaryTree<Value> {
 public:
+    typedef TBinaryTree<Value> ParentClass;
+
+    TRedBlackTree() : 
+        ParentClass()
+    {
+    }
+
+    TRedBlackTree(const TRedBlackTree& other) : 
+        TBinaryTree<Value>()
+    {
+        other.in_order_traverse( [this] (Value v) { this->insert(v); } ); 
+    }
+
+    const TRedBlackTree& operator=(const TRedBlackTree& other)
+    {
+        clear();        
+        other.in_order_traverse( [this] (Value v) { this->insert(v); } ); 
+        return other;
+    }
+
+    TRedBlackTree(TRedBlackTree&& other) : 
+        TBinaryTree<Value>()
+    {
+        std::swap(this->root, other.root);
+        std::swap(this->sz, other.sz);
+    }
+
+    void operator=(TRedBlackTree&& other)
+    {
+        clear();
+        std::swap(this->root, other.root);
+        std::swap(this->sz, other.sz);
+    }
+
     virtual ~TRedBlackTree() 
     {
-        clear(&this->root);
+        clear();
     }
+
+    using ParentClass::insert;
+    using ParentClass::size;
+    using ParentClass::depth;
+    using ParentClass::remove;
+    using ParentClass::in_order_traverse;
+    using ParentClass::find;
+    using ParentClass::clear;
 
     bool rbt_satisfied()
     {
@@ -48,15 +90,16 @@ protected:
         return new RBTNode(v);
     }
 
-    virtual void clear(ParentNodeClass** _r)
+    virtual void internal_clear(ParentNodeClass** _r)
     {
         RBTNode** r = reinterpret_cast<RBTNode**>(_r);
         if(*r != 0) {
-            clear(&(*r)->left);
-            clear(&(*r)->right);
+            internal_clear(&(*r)->left);
+            internal_clear(&(*r)->right);
             delete *r;
             *r = 0;
         }
+        this->sz = 0;
     }
 
     inline RBTNode* node_cast(ParentNodeClass* n)

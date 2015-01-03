@@ -63,11 +63,68 @@ void measure_ins_time()
     }
 }
 
+template <class Tree>
+void test_move_copy()
+{
+    TSingleSet<int, Tree> set1;
+    assert(set1.add(1));
+    assert(set1.add(2));
+
+    // copy constructor
+    TSingleSet<int, Tree> set2(set1);
+    assert(set2.find(1));
+    assert(set2.find(2));
+
+    // copy assignment
+    TSingleSet<int, Tree> set3;
+    assert(set3.add(3));
+    assert(set3.find(3));
+    assert(set3.size() == 1);
+    set3 = set1;
+    assert(!set3.find(3));
+    assert(set3.size() == 2);
+    assert(set3.find(1));
+    assert(set3.find(2));
+
+    // independence checks
+    assert(set1.remove(1));
+    assert(!set1.find(1));
+    assert(set1.find(2));
+    assert(set2.find(1));
+    assert(set2.find(2));
+    assert(set3.find(1));
+    assert(set3.find(2));
+
+    // move constructor
+    TSingleSet<int, Tree> set4(std::move(set2));
+    assert(set2.size() == 0);
+    assert(!set2.find(1));
+    assert(!set2.find(2));
+    assert(set4.size() == 2);
+    assert(set4.find(1));
+    assert(set4.find(2));
+
+    // move assignment
+    TSingleSet<int, Tree> set5;
+    set5.add(3);
+    assert(set5.size() == 1);
+    assert(set5.find(3));
+    set5 = std::move(set3);
+    assert(set3.size() == 0);
+    assert(!set3.find(1));
+    assert(!set3.find(2));
+    assert(set5.size() == 2);
+    assert(set5.find(1));
+    assert(set5.find(2));
+}
+
 int main(int argc, char* argv[])
 {
     test_basic();
     test_init();
     test_set_ops();
     measure_ins_time();
+    test_move_copy<TBinaryTree<int>>();
+    test_move_copy<TRedBlackTree<int>>();
     return 0;
 }

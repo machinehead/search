@@ -16,9 +16,30 @@ public:
         }
     }
 
+    TSingleSet(const TSingleSet& other) :
+        tree(other.tree)
+    {
+    }
+
+    const TSingleSet& operator=(const TSingleSet& other)
+    {
+        tree = other.tree;
+    }
+
+    TSingleSet(TSingleSet&& other) :
+        tree(std::move(other.tree))
+    {
+    }
+
+    void operator=(TSingleSet&& other)
+    {
+        tree = std::move(other.tree);
+    }
+
     int size() const { return tree.size(); }
-    void add(const Value& v) { tree.insert(v); }
-    void remove(const Value& v) { tree.remove(v); }
+    bool add(const Value& v) { return tree.insert(v); }
+    bool remove(const Value& v) { return tree.remove(v); }
+    bool find(const Value& v) { return tree.find(v); }
 
     void add(const TSingleSet& other) 
     {
