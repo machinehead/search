@@ -117,7 +117,7 @@ public:
     }
 
     template<class Func>
-    void in_order_traverse(Func f)
+    void in_order_traverse(Func f) const
     {
         in_order_traverse(root, f);
     }
@@ -211,7 +211,7 @@ private:
     }
 
     template<class Func>
-    void in_order_traverse(Node* n, Func f)
+    void in_order_traverse(Node* n, Func f) const
     {
         if (n != 0) {
             in_order_traverse(n->left, f);
