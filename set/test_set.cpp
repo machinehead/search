@@ -118,6 +118,23 @@ void test_move_copy()
     assert(set5.find(2));
 }
 
+void test_arith_ops()
+{
+    std::cout << "test_arith_ops()" << std::endl;
+    TSingleSet<int> set1({10, 20, 30, 40, 50, 60});
+    TSingleSet<int> set2;
+    for(int i = 0; i < 100; i++) {
+        set2.add(i);
+    }
+    TSingleSet<int> set3(set2 - set1);
+    for(int i = 0; i < 100; i++) {
+        assert( (set1.find(i) && !set3.find(i)) || (set2.find(i) && set3.find(i)) ); 
+    }
+    TSingleSet<int> set4 = set1 & TSingleSet<int>({10, 20, 30});
+    assert(set4.size() == 3);
+    assert((set1 - set4).size() == 3);
+}
+
 int main(int argc, char* argv[])
 {
     test_basic();
@@ -126,5 +143,6 @@ int main(int argc, char* argv[])
     measure_ins_time();
     test_move_copy<TBinaryTree<int>>();
     test_move_copy<TRedBlackTree<int>>();
+    test_arith_ops();
     return 0;
 }
