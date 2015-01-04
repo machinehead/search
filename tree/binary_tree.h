@@ -88,7 +88,7 @@ public:
         return true;
     }
 
-    bool find(const Value& v)
+    bool find(const Value& v) const
     {
         Node** n = internal_find(v);
         if (*n != 0) {
@@ -223,6 +223,11 @@ private:
             }
         }
         return n;
+    }
+
+    Node** internal_find(const Value& v) const 
+    {
+        return const_cast<TBinaryTree*>(this)->internal_find(v);
     }
 
     Node* internal_find_ins_parent(const Value& v)
