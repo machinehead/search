@@ -48,8 +48,19 @@ public:
     using ParentClass::depth;
     using ParentClass::remove;
     using ParentClass::in_order_traverse;
+    using ParentClass::pre_order_traverse;
+    using ParentClass::post_order_traverse;
     using ParentClass::find;
     using ParentClass::clear;
+    using typename ParentClass::PreOrderIterator;
+    using ParentClass::begin_preorder;
+    using ParentClass::end_preorder;
+    using typename ParentClass::InOrderIterator;
+    using ParentClass::begin_inorder;
+    using ParentClass::end_inorder;
+    using typename ParentClass::PostOrderIterator;
+    using ParentClass::begin_postorder;
+    using ParentClass::end_postorder;
 
     bool rbt_satisfied()
     {

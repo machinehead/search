@@ -151,9 +151,191 @@ public:
         internal_in_order_traverse(root, f);
     }
 
+    template<class Func>
+    void pre_order_traverse(Func f) const
+    {
+        internal_pre_order_traverse(root, f);
+    }
+
+    template<class Func>
+    void post_order_traverse(Func f) const
+    {
+        internal_post_order_traverse(root, f);
+    }
+
     void clear()
     {
         internal_clear(&root);
+    }
+
+public:
+    class IteratorBase : public std::iterator<std::forward_iterator_tag, Value> {
+    public:
+        virtual ~IteratorBase()
+        {
+        }
+
+        bool operator==(const IteratorBase& other) 
+        {
+            return node == other.node;
+        }
+
+        bool operator!=(const IteratorBase& other) 
+        {
+            return !(node == other.node);
+        }
+
+        const Value& operator*() const 
+        {
+            return node->v;
+        }
+
+        IteratorBase& operator++() // prefix
+        {
+            advance();
+            return *this;
+        }
+
+    protected:
+        Node* node;
+
+        IteratorBase(Node* _node) : 
+            node( _node )
+        {
+        }
+
+        virtual void advance() = 0;
+    };
+
+    class PreOrderIterator : public IteratorBase {
+    public:
+        PreOrderIterator(Node* _node) : 
+            IteratorBase( _node )
+        {
+        }
+
+        virtual void advance()
+        {
+            assert(this->node != 0);
+            if (this->node->left != 0) {
+                this->node = this->node->left;
+            } else if (this->node->right != 0) {
+                this->node = this->node->right;
+            } else {
+                Node* prev = 0;
+                do {
+                    prev = this->node;
+                    this->node = this->node->parent;
+                } while (this->node != 0 && (prev == this->node->right || this->node->right == 0));
+                if (this->node != 0 && this->node->right != 0) {
+                    this->node = this->node->right;
+                }
+            }
+        }
+    };
+
+    class InOrderIterator : public IteratorBase {
+    public:
+        InOrderIterator(Node* _node) : 
+            IteratorBase( _node )
+        {
+            if (this->node != 0) {
+                set_leftmost_child(this->node);
+            }
+        }
+
+        virtual void advance() 
+        {
+            assert(this->node != 0);
+            if (this->node->right != 0) {
+                set_leftmost_child(this->node->right);
+            } else if (this->node->parent == 0) {
+                this->node = 0;
+            } else {
+                Node* prev = this->node;
+                do {
+                    prev = this->node;
+                    this->node = this->node->parent;
+                } while (this->node != 0 && prev == this->node->right);
+            }
+        }
+
+    private:
+        void set_leftmost_child(Node* n)
+        {
+            assert( n != 0 );
+            while (n->left != 0) {
+                n = n->left;
+            }
+            this->node = n;
+        }
+    };
+
+    class PostOrderIterator : public IteratorBase {
+    public:
+        PostOrderIterator(Node* _node) : 
+            IteratorBase( _node )
+        {
+            if (this->node != 0) {
+               set_left_deepest_child(this->node);
+            }
+        }
+
+        virtual void advance() 
+        {
+            assert(this->node != 0);
+            Node* prev = this->node;
+            this->node = this->node->parent;
+            if (this->node != 0 && prev == this->node->left && this->node->right != 0) {
+                set_left_deepest_child(this->node->right);
+            }
+        }
+
+    private:
+        void set_left_deepest_child(Node* n)
+        {
+            assert( n != 0 );
+            while (true) {
+                if (n->left != 0) {
+                    n = n->left;
+                } else if (n->right != 0) {
+                    n = n->right;
+                } else {
+                    break;
+                }
+            }
+            this->node = n;
+        }
+    };
+
+    PreOrderIterator begin_preorder()
+    {
+        return PreOrderIterator(root);
+    }
+
+    PreOrderIterator end_preorder()
+    {
+        return PreOrderIterator(0);
+    }
+
+    InOrderIterator begin_inorder()
+    {
+        return InOrderIterator(root);
+    }
+
+    InOrderIterator end_inorder()
+    {
+        return InOrderIterator(0);
+    }
+
+    PostOrderIterator begin_postorder()
+    {
+        return PostOrderIterator(root);
+    }
+
+    PostOrderIterator end_postorder()
+    {
+        return PostOrderIterator(0);
     }
 
 protected:
@@ -257,6 +439,26 @@ private:
             internal_in_order_traverse(n->left, f);
             f(n->v);
             internal_in_order_traverse(n->right, f);
+        }
+    }
+
+    template<class Func>
+    void internal_pre_order_traverse(Node* n, Func f) const
+    {
+        if (n != 0) {
+            f(n->v);
+            internal_pre_order_traverse(n->left, f);
+            internal_pre_order_traverse(n->right, f);
+        }
+    }
+
+    template<class Func>
+    void internal_post_order_traverse(Node* n, Func f) const
+    {
+        if (n != 0) {
+            internal_post_order_traverse(n->left, f);
+            internal_post_order_traverse(n->right, f);
+            f(n->v);
         }
     }
 

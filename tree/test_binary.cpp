@@ -3,6 +3,7 @@
 #include <cmath>
 #include <binary_tree.h>
 #include <redblack_tree.h>
+#include <measure.h>
 #include <debug_new.h>
 
 void test_basic()
@@ -95,6 +96,7 @@ void test_in_order_traverse()
     }
 
     assert(tree.size() == tree_sz);
+    assert(rbtree.size() == tree_sz);
     
     TSingleLinkedList<int> in_order_values_tree;
     tree.in_order_traverse( [&in_order_values_tree] (int v) { in_order_values_tree.push_back(v); } );
@@ -206,6 +208,127 @@ void test_move_copy()
     assert(tree5.find(2));
 }
 
+template <class Tree>
+void test_iterator()
+{
+    Tree tree;
+    assert( tree.begin_preorder() == tree.end_preorder() );
+    tree.insert(5);
+    tree.insert(3);
+    tree.insert(7);
+    tree.insert(1);
+    tree.insert(4);
+    tree.insert(6);
+    tree.insert(8);
+    tree.insert(2);
+
+    TSingleLinkedList<int> preorder_list({ 5, 3, 1, 2, 4, 7, 6, 8 });
+    assert(std::equal(tree.begin_preorder(), tree.end_preorder(), preorder_list.begin()));
+    TSingleLinkedList<int> inorder_list({ 1, 2, 3, 4, 5, 6, 7, 8 });
+    assert(std::equal(tree.begin_inorder(), tree.end_inorder(), inorder_list.begin()));
+    TSingleLinkedList<int> postorder_list({ 2, 1, 4, 3, 6, 8, 7, 5 });
+    assert(std::equal(tree.begin_postorder(), tree.end_postorder(), postorder_list.begin()));
+}
+
+void test_inorder_sorted()
+{
+    TRedBlackTree<int> rbtree;
+
+    const int N = 1000000;
+    for(int i = 0; i < N; i++) {
+        int v = rand() % 100000;
+        rbtree.insert(v);
+    }
+    assert(std::is_sorted(rbtree.begin_inorder(), rbtree.end_inorder()));
+}
+
+template<class Iterator>
+void copy_tree_iterator(Iterator begin, Iterator end, TRedBlackTree<int>& to)
+{
+    for (; begin != end; ++begin) {
+        assert(to.insert(*begin));
+    }
+}
+
+void test_rbtree_copy_order()
+{
+    TRedBlackTree<int> rbtree;
+
+    const int N = 2000000;
+    for(int i = 0; i < N; i++) {
+        int v = rand() % 10000000;
+        rbtree.insert(v);
+    }
+    
+    TRedBlackTree<int> tree1;
+    std::cout << "Copying " << rbtree.size() << " items with preorder iterator takes " << Nstd::measure<>::execution(
+        copy_tree_iterator<TRedBlackTree<int>::PreOrderIterator>,
+        rbtree.begin_preorder(),
+        rbtree.end_preorder(),
+        tree1
+    ) << "us" << std::endl;
+    assert(tree1.size() == rbtree.size());
+
+    TRedBlackTree<int> tree2;
+    std::cout << "Copying " << rbtree.size() << " items with inorder iterator takes " << Nstd::measure<>::execution(
+        copy_tree_iterator<TRedBlackTree<int>::InOrderIterator>,
+        rbtree.begin_inorder(),
+        rbtree.end_inorder(),
+        tree2
+    ) << "us" << std::endl;
+    assert(tree2.size() == rbtree.size());
+
+    TRedBlackTree<int> tree3;
+    std::cout << "Copying " << rbtree.size() << " items with postorder iterator takes " << Nstd::measure<>::execution(
+        copy_tree_iterator<TRedBlackTree<int>::PostOrderIterator>,
+        rbtree.begin_postorder(),
+        rbtree.end_postorder(),
+        tree3
+    ) << "us" << std::endl;
+    assert(tree3.size() == rbtree.size());
+}
+
+void test_iterator_order()
+{
+    TBinaryTree<int> tree;
+    TRedBlackTree<int> rbtree;
+
+    int tree_sz = 0;
+
+    for(int i = 0; i < 10000; i++) {
+        int v1 = rand() % 10000;
+        tree_sz += tree.insert(v1) ? 1 : 0;
+        rbtree.insert(v1);
+    }
+
+    assert(tree.size() == tree_sz);
+    assert(rbtree.size() == tree_sz);
+    
+    TSingleLinkedList<int> in_order_values_tree;
+    tree.in_order_traverse( [&in_order_values_tree] (int v) { in_order_values_tree.push_back(v); } );
+    assert(std::equal(tree.begin_inorder(), tree.end_inorder(), in_order_values_tree.begin()));
+
+    TSingleLinkedList<int> in_order_values_rbtree;
+    rbtree.in_order_traverse( [&in_order_values_rbtree] (int v) { in_order_values_rbtree.push_back(v); } );
+    assert(std::equal(rbtree.begin_inorder(), rbtree.end_inorder(), in_order_values_rbtree.begin()));
+
+    TSingleLinkedList<int> pre_order_values_tree;
+    tree.pre_order_traverse( [&pre_order_values_tree] (int v) { pre_order_values_tree.push_back(v); } );
+    assert(std::equal(tree.begin_preorder(), tree.end_preorder(), pre_order_values_tree.begin()));
+
+    TSingleLinkedList<int> pre_order_values_rbtree;
+    rbtree.pre_order_traverse( [&pre_order_values_rbtree] (int v) { pre_order_values_rbtree.push_back(v); } );
+    assert(std::equal(rbtree.begin_preorder(), rbtree.end_preorder(), pre_order_values_rbtree.begin()));
+
+    TSingleLinkedList<int> post_order_values_tree;
+    tree.post_order_traverse( [&post_order_values_tree] (int v) { post_order_values_tree.push_back(v); } );
+    assert(std::equal(tree.begin_postorder(), tree.end_postorder(), post_order_values_tree.begin()));
+
+    TSingleLinkedList<int> post_order_values_rbtree;
+    rbtree.post_order_traverse( [&post_order_values_rbtree] (int v) { post_order_values_rbtree.push_back(v); } );
+    assert(std::equal(rbtree.begin_postorder(), rbtree.end_postorder(), post_order_values_rbtree.begin()));
+}
+
 int main(int argc, char* argv[])
 {
     test_basic();
@@ -218,6 +341,10 @@ int main(int argc, char* argv[])
     test_move_copy<TBinaryTree<int>>();
     std::cout << "test_move_copy<TRedBlackTree<int>>()" << std::endl;
     test_move_copy<TRedBlackTree<int>>();
-
+    test_iterator<TBinaryTree<int>>();
+    test_iterator<TRedBlackTree<int>>();
+    test_inorder_sorted();
+    test_iterator_order();
+    test_rbtree_copy_order();
     return 0;
 }
