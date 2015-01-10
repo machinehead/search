@@ -207,6 +207,29 @@ void test_sorted()
     std::cout << std::endl;
 }
 
+void test_insert()
+{
+    typedef TSingleLinkedList<int> IntListType;
+    
+    IntListType lst({1,2,3,4,5});
+    IntListType::ForwardIterator it = ++lst.begin();
+    assert(*it == 2);
+    lst.insert(it, 1);
+    assert(*it++ == 1);
+    assert(*it++ == 2);
+    assert(*it++ == 3);
+    assert(*it++ == 4);
+    lst.insert(it, 4);
+    lst.push_back(6);
+    assert(*it++ == 4);
+    assert(*it++ == 5);
+    assert(*it++ == 6);
+    assert(it == lst.end());
+    IntListType test_lst({1,1,2,3,4,4,5,6});
+    assert(std::equal(test_lst.begin(), test_lst.end(), lst.begin()));
+    assert(std::equal(lst.begin(), lst.end(), test_lst.begin()));
+}
+
 int main(int argc, char* argv[])
 {
     test_size();
@@ -215,5 +238,6 @@ int main(int argc, char* argv[])
     test_init_list();
     test_copy_move();
     test_sorted();
+    test_insert();
     return 0;
 }
