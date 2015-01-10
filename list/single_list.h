@@ -66,7 +66,8 @@ public:
 
     ForwardIterator end() const
     {
-        return ForwardIterator(0);
+        static const ForwardIterator result(0);
+        return result;
     }
 
     void clear() 
@@ -104,6 +105,19 @@ public:
             tail = tail->next = new Node(v);
         }
         ++sz;
+    }
+
+    void insert(const ForwardIterator& it, const Value& v)
+    {
+        assert(it.node != 0);
+        Node* newnode = new Node(std::move(it.node->v));
+        it.node->v = v;
+        newnode->next = it.node->next;
+        it.node->next = newnode;
+        if (tail == it.node) {
+            tail = newnode;
+        }
+        sz++;
     }
 
     Value pop_front()
@@ -144,6 +158,11 @@ public:
         Value& operator*() const {
             assert(node != 0);
             return node->v;
+        }
+
+        Value* operator->() const {
+            assert(node != 0);
+            return &node->v;
         }
 
         ForwardIterator& operator++() // prefix

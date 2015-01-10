@@ -8,6 +8,7 @@ add_subdirectory(list)
 add_subdirectory(nvwa)
 add_subdirectory(tree)
 add_subdirectory(set)
+add_subdirectory(graph)
 
 add_executable(main a.cpp)
 
